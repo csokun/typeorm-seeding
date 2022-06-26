@@ -1,4 +1,4 @@
-import * as Faker from 'faker'
+import { Faker } from '@faker-js/faker';
 import { ObjectType, SaveOptions } from 'typeorm'
 import { FactoryFunction, EntityProperty } from './types'
 import { isPromiseLike } from './utils/factory.util'
@@ -104,6 +104,7 @@ export class EntityFactory<Entity, Context> {
 
     for (const key in overrideParams) {
       if (overrideParams.hasOwnProperty(key)) {
+        // @ts-ignore
         entity[key] = overrideParams[key]
       }
     }

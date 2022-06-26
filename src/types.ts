@@ -1,4 +1,4 @@
-import * as Faker from 'faker'
+import { Faker } from '@faker-js/faker';
 import { Connection, ObjectType } from 'typeorm'
 
 import { EntityFactory } from './entity-factory'
