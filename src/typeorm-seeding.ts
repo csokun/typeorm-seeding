@@ -56,9 +56,10 @@ export const useRefreshDatabase = async (options: ConfigureOption = {}): Promise
 
   if (!ds.isInitialized) {
     await ds.initialize()
-    await ds.dropDatabase()
-    await ds.synchronize();
-  } 
+  }
+  // reset database 
+  await ds.dropDatabase()
+  await ds.synchronize();
 
   return ds
 }

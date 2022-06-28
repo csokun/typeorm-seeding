@@ -4,13 +4,17 @@ import {
   tearDownDatabase,
   factory,
   setConnectionOptions,
+  runSeeder,
 } from '../../src/typeorm-seeding'
 import { User } from '../entities/User.entity'
 import { DataSource } from 'typeorm'
+import { Pet } from '../entities/Pet.entity'
+import CreatePets from '../seeds/create-pets.seed'
+import CreateUsers from '../seeds/create-users.seed'
 
 describe('Sample Integration Test', () => {
   let datasource: DataSource
-  beforeAll(async () => {
+  beforeEach(async () => {
     setConnectionOptions({
       type: 'sqlite',
       database: ':memory:',
@@ -20,8 +24,20 @@ describe('Sample Integration Test', () => {
     await useSeeding()
   })
 
-  afterAll(async () => {
+  afterEach(async () => {
     await tearDownDatabase()
+  })
+
+  test('Should be able to seed Pets', async () => {
+    await runSeeder(CreatePets)
+    const pets = await datasource.getRepository(Pet).find();
+    expect(pets.length).toEqual(1)
+  })
+
+  test('Should be able to seed Users', async () => {
+    await runSeeder(CreateUsers)
+    const users = await datasource.getRepository(User).find();
+    expect(users.length).toEqual(10)
   })
 
   test('Should create a user with the entity factory', async () => {
