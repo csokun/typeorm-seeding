@@ -40,12 +40,12 @@ export class EntityFactory<Entity, Context> {
    */
   public async create(overrideParams: EntityProperty<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity> {
     const option = await getConnectionOptions()
-    const connection = await createConnection(option)
-    if (connection && connection.isConnected) {
-      const em = connection.createEntityManager()
+    const datasource = await createConnection(option)
+    if (datasource.isInitialized) {
+      const em = datasource.createEntityManager()
       try {
         const entity = await this.makeEnity(overrideParams, true)
-        return await em.save<Entity>(entity, saveOptions)
+        return em.save<Entity>(entity, saveOptions)
       } catch (error) {
         const message = 'Could not save entity'
         printError(message, error)

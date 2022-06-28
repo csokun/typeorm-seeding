@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { ObjectType, getConnection, Connection } from 'typeorm'
+import { ObjectType, DataSource } from 'typeorm'
 
 import { EntityFactory } from './entity-factory'
 import { EntityFactoryDefinition, Factory, FactoryFunction, SeederConstructor, Seeder } from './types'
@@ -42,29 +42,33 @@ export const factory: Factory = <Entity, Context>(entity: ObjectType<Entity>) =>
 
 export const runSeeder = async (clazz: SeederConstructor): Promise<any> => {
   const seeder: Seeder = new clazz()
-  const connection = await createConnection()
-  return seeder.run(factory, connection)
+  const datasource = await createConnection()
+  return seeder.run(factory, datasource)
 }
 
 // -------------------------------------------------------------------------
 // Facade functions for testing
 // -------------------------------------------------------------------------
-export const useRefreshDatabase = async (options: ConfigureOption = {}): Promise<Connection> => {
+export const useRefreshDatabase = async (options: ConfigureOption = {}): Promise<DataSource> => {
   configureConnection(options)
   const option = await getConnectionOptions()
-  const connection = await createConnection(option)
-  if (connection && connection.isConnected) {
-    await connection.dropDatabase()
-    await connection.synchronize()
-  }
-  return connection
+  const ds = await createConnection(option)
+
+  if (!ds.isInitialized) {
+    await ds.initialize()
+    await ds.dropDatabase()
+    await ds.synchronize();
+  } 
+
+  return ds
 }
 
 export const tearDownDatabase = async (): Promise<void> => {
-  const connection = await createConnection()
-  return connection && connection.isConnected ? connection.close() : undefined
+  const datasource = await createConnection()
+  if (datasource.isInitialized) await datasource.destroy()
 }
 
+// dynamically import seeding script
 export const useSeeding = async (options: ConfigureOption = {}): Promise<void> => {
   configureConnection(options)
   const option = await getConnectionOptions()

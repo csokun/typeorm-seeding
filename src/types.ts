@@ -1,5 +1,5 @@
 import { Faker } from '@faker-js/faker';
-import { Connection, ObjectType } from 'typeorm'
+import { DataSource, ObjectType } from 'typeorm'
 
 import { EntityFactory } from './entity-factory'
 
@@ -24,7 +24,7 @@ export type Factory = <Entity, Context>(
  * Seed are the class to create some data. Those seed are run by the cli.
  */
 export interface Seeder {
-  run(factory: Factory, connection: Connection): Promise<void>
+  run(factory: Factory, dataSource: DataSource): Promise<void>
 }
 
 /**

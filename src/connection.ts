@@ -1,9 +1,7 @@
 import {
   ConnectionOptionsReader,
-  Connection as TypeORMConnection,
-  ConnectionOptions as TypeORMConnectionOptions,
-  createConnection as TypeORMCreateConnection,
-  getConnection as TypeORMGetConnection,
+  DataSource,
+  DataSourceOptions,
 } from 'typeorm'
 import { printError } from './utils/log.util'
 
@@ -12,7 +10,7 @@ interface SeedingOptions {
   seeds: string[]
 }
 
-export declare type ConnectionOptions = TypeORMConnectionOptions & SeedingOptions
+export declare type ConnectionOptions = DataSourceOptions & SeedingOptions
 
 export interface ConfigureOption {
   root?: string
@@ -32,7 +30,7 @@ if ((global as any)[KEY] === undefined) {
   ;(global as any)[KEY] = {
     configureOption: defaultConfigureOption,
     ormConfig: undefined,
-    connection: undefined,
+    datasource: undefined,
     overrideConnectionOptions: {},
   }
 }
@@ -44,7 +42,7 @@ export const configureConnection = (option: ConfigureOption = {}) => {
   }
 }
 
-export const setConnectionOptions = (options: Partial<TypeORMConnectionOptions>): void => {
+export const setConnectionOptions = (options: Partial<DataSourceOptions>): void => {
   ;(global as any)[KEY].overrideConnectionOptions = options
 }
 
@@ -90,23 +88,19 @@ export const getConnectionOptions = async (): Promise<ConnectionOptions> => {
   return ormConfig
 }
 
-export const createConnection = async (option?: TypeORMConnectionOptions): Promise<TypeORMConnection> => {
-  const configureOption = (global as any)[KEY].configureOption
-  let connection = (global as any)[KEY].connection
+export const createConnection = async (option?: DataSourceOptions): Promise<DataSource> => {
+  let dataSource = (global as any)[KEY].dataSource
   let ormConfig = (global as any)[KEY].ormConfig
 
   if (option !== undefined) {
     ormConfig = option
   }
 
-  if (connection === undefined) {
-    try {
-      connection = await TypeORMGetConnection(configureOption.name)
-    } catch (_) {}
-    if (connection === undefined) {
-      connection = await TypeORMCreateConnection(ormConfig)
-    }
-    ;(global as any)[KEY].connection = connection
+  if (dataSource === undefined) {
+      dataSource = new DataSource(ormConfig)
+      await dataSource.initialize()
+    ;(global as any)[KEY].dataSource = dataSource
   }
-  return connection
+
+  return dataSource
 }
